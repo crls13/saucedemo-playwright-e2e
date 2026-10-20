@@ -39,5 +39,14 @@ export default defineConfig({
       dependencies: ['setup'],
       grep: /@smoke/,
     },
+    {
+      // API tests against Restful Booker. No browser is launched.
+      name: 'api',
+      testDir: './api/tests',
+      use: {
+        baseURL: process.env.BOOKER_BASE_URL ?? 'https://restful-booker.herokuapp.com',
+        extraHTTPHeaders: { Accept: 'application/json' },
+      },
+    },
   ],
 });

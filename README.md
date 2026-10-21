@@ -8,7 +8,7 @@ UI and API test automation built with **Playwright** and **TypeScript**:
 - **API:** tests for [Restful Booker](https://restful-booker.herokuapp.com), a hotel booking REST API
 - **Accessibility:** automated WCAG 2.2 AA scans with [axe-core](https://github.com/dequelabs/axe-core) on every page of the purchase flow
 - **Visual regression:** full-page screenshot comparisons against approved baselines
-- **Test design:** 22 checkout test cases in Jira Xray format, traced to the automated tests that cover them ([traceability matrix](docs/traceability.md))
+- **Test design:** 25 checkout test cases in Jira Xray format, traced to the automated tests that cover them ([traceability matrix](docs/traceability.md))
 - **Exploratory testing:** a charter-based session that found 18 bugs the automated suite does not cover, written up for Jira ([session report](docs/exploratory/2026-10-21-session-report.md))
 
 **[View the latest test report](https://crls13.github.io/saucedemo-playwright-e2e/)**, published from `main` on every run.
@@ -23,6 +23,7 @@ UI and API test automation built with **Playwright** and **TypeScript**:
 | Checkout | Full purchase with order-total math check, required-field validation for each field |
 | Accessibility | WCAG 2.2 AA scans of login, inventory, product details, cart, and all checkout steps, including error states, plus a control test proving the scanner detects planted violations |
 | Visual | Screenshot comparisons of login, inventory, cart, checkout overview and order complete (CI only) |
+| Known UI defects | 5 bugs from the exploratory session (empty-cart orders, cart leaking between users, Enter key cancelling checkout, whitespace input, Reset App State), asserted as `test.fail()` |
 
 Tests are tagged `@smoke` (critical path, also run on a mobile viewport) or `@regression`.
 

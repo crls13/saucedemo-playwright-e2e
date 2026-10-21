@@ -9,6 +9,7 @@ UI and API test automation built with **Playwright** and **TypeScript**:
 - **Accessibility:** automated WCAG 2.2 AA scans with [axe-core](https://github.com/dequelabs/axe-core) on every page of the purchase flow
 - **Visual regression:** full-page screenshot comparisons against approved baselines
 - **Test design:** 22 checkout test cases in Jira Xray format, traced to the automated tests that cover them ([traceability matrix](docs/traceability.md))
+- **Exploratory testing:** a charter-based session that found 18 bugs the automated suite does not cover, written up for Jira ([session report](docs/exploratory/2026-10-21-session-report.md))
 
 **[View the latest test report](https://crls13.github.io/saucedemo-playwright-e2e/)**, published from `main` on every run.
 
@@ -65,7 +66,7 @@ api/clients/    API client wrapping the Restful Booker endpoints
 api/schemas/    zod response contracts
 api/fixtures/   API fixtures (client, auth token, self-cleaning booking)
 api/tests/      API specs
-docs/           Known-defect write-ups, test cases (Xray CSV) and traceability matrix
+docs/           Known-defect write-ups, test cases (Xray CSV), traceability matrix and exploratory session reports
 pages/          Page objects (BasePage holds the shared header and menu)
 fixtures/       Custom test fixtures that inject page objects
 tests/          Specs plus auth.setup.ts

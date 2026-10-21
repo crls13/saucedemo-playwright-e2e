@@ -6,6 +6,9 @@ UI and API test automation built with **Playwright** and **TypeScript**:
 
 - **UI:** end-to-end tests for [saucedemo.com](https://www.saucedemo.com), a demo e-commerce site
 - **API:** tests for [Restful Booker](https://restful-booker.herokuapp.com), a hotel booking REST API
+- **Accessibility:** automated WCAG 2.2 AA scans with [axe-core](https://github.com/dequelabs/axe-core) on every page of the purchase flow
+
+**[View the latest test report](https://crls13.github.io/saucedemo-playwright-e2e/)**, published from `main` on every run.
 
 ## UI suite: what's covered
 
@@ -15,6 +18,7 @@ UI and API test automation built with **Playwright** and **TypeScript**:
 | Inventory | Product list, sorting by price and name, cart badge updates, logout ends the session |
 | Cart | Added items shown, remove item, persistence after reload, continue shopping |
 | Checkout | Full purchase with order-total math check, required-field validation for each field |
+| Accessibility | WCAG 2.2 AA scans of login, inventory, product details, cart, and all checkout steps, including error states |
 
 Tests are tagged `@smoke` (critical path, also run on a mobile viewport) or `@regression`.
 
@@ -45,6 +49,7 @@ API design decisions:
 - **No hard waits.** Only web-first assertions (`await expect(locator)...`), which retry automatically.
 - **Data-driven tests.** Invalid-login and missing-field cases are typed arrays in `test-data/`.
 - **Secrets outside code.** Credentials come from `.env` locally and GitHub Secrets in CI.
+- **Accessibility scans.** `utils/a11y.ts` runs axe-core against WCAG 2.0–2.2 A/AA rules, attaches the full results to the report, and fails with a readable list of violations and links to the fix guidance. Automated scans catch only part of accessibility issues, so they complement keyboard and screen-reader testing rather than replace it.
 - **Debuggable failures.** Screenshots, video, and traces are kept on failure or retry.
 
 ## Project structure
@@ -75,6 +80,7 @@ cp .env.example .env        # Windows PowerShell: Copy-Item .env.example .env
 npm test                    # everything: UI (desktop + mobile smoke) and API
 npm run test:ui-suite       # UI tests only
 npm run test:api            # API tests only
+npm run test:a11y           # accessibility scans only
 npm run test:smoke          # smoke tests only, UI and API
 npm run test:headed         # watch it run in a real browser
 npm run test:ui             # Playwright UI mode
@@ -83,4 +89,4 @@ npm run report              # open the last HTML report
 
 ## CI
 
-`.github/workflows/playwright.yml` runs a type check and the full suite on every push and pull request to `main`, then uploads the HTML report as an artifact. Add `SAUCE_USERNAME`, `SAUCE_PASSWORD`, `BOOKER_USERNAME` and `BOOKER_PASSWORD` as repository secrets (Settings → Secrets and variables → Actions).
+`.github/workflows/playwright.yml` runs a type check and the full suite on every push and pull request to `main`, uploads the HTML report as an artifact, and on `main` publishes it to [GitHub Pages](https://crls13.github.io/saucedemo-playwright-e2e/). Add `SAUCE_USERNAME`, `SAUCE_PASSWORD`, `BOOKER_USERNAME` and `BOOKER_PASSWORD` as repository secrets (Settings → Secrets and variables → Actions).

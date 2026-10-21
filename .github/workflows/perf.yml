@@ -1,0 +1,33 @@
+name: Performance tests
+
+# Load tests run weekly and on demand, not on every push, to keep traffic on the
+# shared public API low.
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 13 * * 1' # Mondays 13:17 UTC (8:17 Panama time)
+
+jobs:
+  k6:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      BOOKER_BASE_URL: https://restful-booker.herokuapp.com
+      BOOKER_USERNAME: ${{ secrets.BOOKER_USERNAME }}
+      BOOKER_PASSWORD: ${{ secrets.BOOKER_PASSWORD }}
+      # k6's built-in dashboard, exported as a standalone HTML report at the end of the run.
+      K6_WEB_DASHBOARD: 'true'
+      K6_WEB_DASHBOARD_EXPORT: k6-report.html
+    steps:
+      - uses: actions/checkout@v6
+      - name: Install k6
+        uses: grafana/setup-k6-action@v1
+      - name: Run load test
+        run: k6 run perf/booking-load.ts
+      - name: Upload k6 report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: k6-report
+          path: k6-report.html
+          retention-days: 30

@@ -8,6 +8,7 @@ UI and API test automation built with **Playwright** and **TypeScript**:
 - **API:** tests for [Restful Booker](https://restful-booker.herokuapp.com), a hotel booking REST API
 - **Accessibility:** automated WCAG 2.2 AA scans with [axe-core](https://github.com/dequelabs/axe-core) on every page of the purchase flow
 - **Visual regression:** full-page screenshot comparisons against approved baselines
+- **Performance:** a [k6](https://k6.io) load test of a full booking journey with per-endpoint response-time thresholds
 - **Test design:** 25 checkout test cases in Jira Xray format, traced to the automated tests that cover them ([traceability matrix](docs/traceability.md))
 - **Exploratory testing:** a charter-based session that found 18 bugs the automated suite does not cover, written up for Jira ([session report](docs/exploratory/2026-10-21-session-report.md))
 
@@ -47,6 +48,21 @@ API design decisions:
 - **Self-cleaning test data.** The `createdBooking` fixture creates a uniquely named booking before each test and deletes it afterwards, so tests are independent and leave nothing behind on the shared API.
 - **Known defects as tests.** Tests assert the *correct* behavior and are marked `test.fail()`. If the API is fixed, Playwright flags them so the marker can be removed.
 
+## Performance test
+
+`perf/booking-load.ts` is a k6 script that runs a booking journey (list, create, read, search, update, delete) against Restful Booker:
+
+| Phase | Load |
+| --- | --- |
+| Smoke | 1 virtual user for 15 s, to prove the journey works |
+| Load | Ramp to 5 virtual users, hold for 30 s, ramp down |
+
+The run fails if more than 1% of requests error, if fewer than 99% of checks pass, or if any endpoint's 95th-percentile response time goes over its limit (1 s for reads by id, 1.5 s for everything else). Load stays at about 5 requests per second, because Restful Booker is a shared public API. For the same reason it runs weekly and on demand (`.github/workflows/perf.yml`), not on every push. Each run uploads k6's HTML dashboard as the `k6-report` artifact.
+
+First local run: every threshold passed, with 95th-percentile times of about 85 ms on most endpoints. The booking list was the slowest at about 240 ms, because it returns every booking with no pagination, so it will slow down as data grows.
+
+To run it locally, install k6 (`winget install k6 --source winget` on Windows), then `npm run perf`.
+
 ## UI design decisions
 
 - **Page Object Model.** Locators and actions live in `pages/`; assertions stay in the specs.
@@ -67,6 +83,7 @@ api/clients/    API client wrapping the Restful Booker endpoints
 api/schemas/    zod response contracts
 api/fixtures/   API fixtures (client, auth token, self-cleaning booking)
 api/tests/      API specs
+perf/           k6 performance test
 docs/           Known-defect write-ups, test cases (Xray CSV), traceability matrix and exploratory session reports
 pages/          Page objects (BasePage holds the shared header and menu)
 fixtures/       Custom test fixtures that inject page objects
@@ -89,6 +106,7 @@ npm test                    # everything: UI (desktop + mobile smoke) and API
 npm run test:ui-suite       # UI tests only
 npm run test:api            # API tests only
 npm run test:a11y           # accessibility scans only
+npm run perf                # k6 load test (needs k6 installed)
 npm run test:smoke          # smoke tests only, UI and API
 npm run test:headed         # watch it run in a real browser
 npm run test:ui             # Playwright UI mode
@@ -97,4 +115,4 @@ npm run report              # open the last HTML report
 
 ## CI
 
-`.github/workflows/playwright.yml` runs a type check and the full suite on every push and pull request to `main`, uploads the HTML report as an artifact, and on `main` publishes it to [GitHub Pages](https://crls13.github.io/saucedemo-playwright-e2e/). `.github/workflows/visual-baselines.yml` is run by hand to approve new visual baselines. Add `SAUCE_USERNAME`, `SAUCE_PASSWORD`, `BOOKER_USERNAME` and `BOOKER_PASSWORD` as repository secrets (Settings → Secrets and variables → Actions).
+`.github/workflows/playwright.yml` runs a type check and the full suite on every push and pull request to `main`, uploads the HTML report as an artifact, and on `main` publishes it to [GitHub Pages](https://crls13.github.io/saucedemo-playwright-e2e/). `.github/workflows/visual-baselines.yml` is run by hand to approve new visual baselines, and `.github/workflows/perf.yml` runs the k6 load test weekly and on demand. Add `SAUCE_USERNAME`, `SAUCE_PASSWORD`, `BOOKER_USERNAME` and `BOOKER_PASSWORD` as repository secrets (Settings → Secrets and variables → Actions).

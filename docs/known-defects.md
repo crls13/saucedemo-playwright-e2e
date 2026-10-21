@@ -63,3 +63,35 @@ Clients that check only the status code treat a failed login as a success, and t
 h3. Evidence
 * Test: api/tests/known-defects.spec.ts › "failed authentication should return 401"
 ```
+
+---
+
+## DEFECT-003
+
+```
+Summary: [Booking API] POST /booking accepts a check-out date before the check-in date
+Issue Type: Bug
+Priority: High
+Labels: api, validation, business-rule, automated-test
+Environment: https://restful-booker.herokuapp.com | Playwright API tests
+
+h3. Steps to Reproduce
+# Send POST /booking with header Accept: application/json
+# Use a valid body where bookingdates.checkout is 5 days before bookingdates.checkin, e.g.
+{code}"bookingdates": {"checkin": "2026-11-10", "checkout": "2026-11-05"}{code}
+
+h3. Expected Result
+400 Bad Request with a message that check-out must be on or after check-in. No booking is created.
+
+h3. Actual Result
+200 OK. The booking is created and stored with the impossible date range.
+
+h3. Reproducibility
+Always
+
+h3. Impact
+Invalid bookings reach the system, which can break availability, invoicing and reporting that assume a positive stay length.
+
+h3. Evidence
+* Test: api/tests/known-defects.spec.ts › "a booking with check-out before check-in should be rejected with 400"
+```

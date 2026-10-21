@@ -1,4 +1,5 @@
 import { test, expect } from '../fixtures/api-fixtures';
+import { buildBooking, isoDateFromToday } from '../test-data/booking';
 
 /**
  * These tests assert the CORRECT behavior and are marked test.fail() because the
@@ -21,5 +22,21 @@ test.describe('Known defects', () => {
     const response = await bookingClient.auth('admin', 'wrong-password');
 
     expect(response.status()).toBe(401);
+  });
+
+  test('a booking with check-out before check-in should be rejected with 400 @defect', async ({ bookingClient, authToken }) => {
+    test.fail(true, 'DEFECT-003: API accepts and stores a booking whose check-out date is before its check-in date');
+
+    const response = await bookingClient.createBooking(
+      buildBooking({ bookingdates: { checkin: isoDateFromToday(10), checkout: isoDateFromToday(5) } }),
+    );
+
+    // Clean up if the API created it anyway.
+    if (response.ok()) {
+      const { bookingid } = await response.json();
+      await bookingClient.deleteBooking(bookingid, authToken);
+    }
+
+    expect(response.status()).toBe(400);
   });
 });

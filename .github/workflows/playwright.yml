@@ -7,6 +7,11 @@ on:
     branches: [main]
   workflow_dispatch:
 
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -38,3 +43,24 @@ jobs:
           name: playwright-report
           path: playwright-report/
           retention-days: 14
+      - name: Prepare report for GitHub Pages
+        if: ${{ !cancelled() && github.ref == 'refs/heads/main' && github.event_name != 'pull_request' }}
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: playwright-report/
+
+  # Publishes the latest report from main to https://<user>.github.io/<repo>/
+  deploy-report:
+    needs: test
+    if: ${{ !cancelled() && github.ref == 'refs/heads/main' && github.event_name != 'pull_request' }}
+    runs-on: ubuntu-latest
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5
